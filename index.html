@@ -1,2 +1,493 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>NEXUS Cortex Elite</title><meta http-equiv="refresh" content="0; url=https://antmanthepro.github.io/nexus-cortex/"></head><body><h1>NEXUS Cortex — Elite Masters Build</h1><p>Loading full artifact...</p></body></html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>NEXUS CoreMind v4 — Live Kernel System Monitor</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f' stroke='%2300ff87' stroke-width='1.5'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%2360efff' stroke-width='1.2'/%3E%3Cpath d='M20 42 L32 14 L44 42 M25.5 32 H38.5' fill='none' stroke='%2300ff87' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='3.2' fill='%23ff0080'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f' stroke='%2300ff87' stroke-width='1.5'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%2360efff' stroke-width='1.2'/%3E%3Cpath d='M20 42 L32 14 L44 42 M25.5 32 H38.5' fill='none' stroke='%2300ff87' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='3.2' fill='%23ff0080'/%3E%3C/svg%3E">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+            color: #00ff87;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+        }
+        .nexus-stamp {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 16px; background: rgba(10,10,15,0.95);
+            border-bottom: 2px solid #60efff;
+        }
+        .nexus-chip { font-size: 10px; color: #ffcc00; letter-spacing: 1px; }
+        .nexus-stamp h1 { font-size: 22px; color: #00ff87; text-shadow: 0 0 12px #00ff87; margin: 0; }
+        .nexus-stamp p { font-size: 11px; color: #60efff; margin: 0; }
+        .container {
+            display: grid;
+            grid-template-columns: 260px 1fr 280px;
+            grid-template-rows: auto 1fr auto;
+            height: calc(100vh - 60px);
+            gap: 0;
+        }
+        .sidebar, .kernel-panel {
+            background: rgba(0,0,0,0.85);
+            border-right: 1px solid #60efff;
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+        .kernel-panel { border-right: none; border-left: 1px solid #60efff; }
+        .canvas-wrap {
+            position: relative;
+            background: #0a0a0f;
+            overflow: hidden;
+        }
+        .masters-badge { position: absolute; top: 12px; right: 12px; background: rgba(255,0,128,0.15); border: 1px solid #ff0080; color: #ff0080; font-size: 9px; padding: 3px 8px; border-radius: 2px; letter-spacing: 1px; font-weight: bold; pointer-events: none; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+        .metric-panel, .control-panel, .temp-panel {
+            margin-bottom: 12px; padding: 8px;
+            border: 1px solid rgba(96,239,255,0.3);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.4);
+        }
+        .metric-title, .control-title, .temp-title {
+            color: #ffcc00; font-weight: bold; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+        }
+        .metric-bar { height: 6px; background: #111; border: 1px solid #60efff; margin: 4px 0; border-radius: 2px; overflow: hidden; }
+        .metric-fill { height: 100%; background: linear-gradient(90deg, #00ff87, #60efff); width: 0%; transition: width 0.1s; }
+        .metric-value { display: flex; justify-content: space-between; color: #00ff87; font-size: 10px; }
+        .temp-panel { border-color: #ff0080; background: rgba(255,0,128,0.08); }
+        .temp-gauge { height: 14px; background: #111; border: 1px solid #ff0080; border-radius: 3px; overflow: hidden; }
+        .temp-fill { height: 100%; background: linear-gradient(90deg, #00ff87, #ffcc00, #ff0080); width: 0%; transition: width 0.2s; }
+        .temp-display { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .temp-value { color: #ff0080; font-size: 14px; font-weight: bold; }
+        .temp-status { padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: bold; }
+        .temp-status.safe { background: rgba(0,255,135,0.2); color: #00ff87; border: 1px solid #00ff87; }
+        .temp-status.warm { background: rgba(255,204,0,0.2); color: #ffcc00; border: 1px solid #ffcc00; }
+        .temp-status.critical { background: rgba(255,0,128,0.3); color: #ff0080; border: 1px solid #ff0080; }
+        .control-btn, .mode-btn {
+            width: 100%; padding: 6px; margin-bottom: 4px;
+            border: 1px solid #ffcc00; background: rgba(255,204,0,0.1);
+            color: #ffcc00; cursor: pointer; font-family: inherit; font-size: 10px; font-weight: bold;
+            border-radius: 2px; transition: all 0.2s;
+        }
+        .control-btn:hover, .mode-btn:hover { background: rgba(255,204,0,0.25); box-shadow: 0 0 8px #ffcc00; }
+        .mode-btn { width: auto; padding: 6px 12px; margin: 0 4px 4px 0; border-color: #60efff; color: #60efff; background: rgba(96,239,255,0.1); }
+        .mode-btn.active { background: #60efff; color: #0a0a0f; }
+        .kernel-panel textarea {
+            width: 100%; height: 180px; background: #000; color: #00ff87;
+            border: 1px solid #60efff; font-family: inherit; font-size: 11px;
+            padding: 8px; resize: vertical; border-radius: 4px;
+        }
+        .kernel-panel button { margin-top: 6px; }
+        .footer {
+            grid-column: 1 / -1;
+            background: rgba(0,0,0,0.9); border-top: 2px solid #ffcc00;
+            padding: 8px 16px; display: flex; justify-content: space-between; flex-wrap: wrap;
+            font-size: 11px; gap: 12px;
+        }
+        .stat-label { color: #ffcc00; }
+        .stat-value { color: #00ff87; font-weight: bold; }
+        .export-area {
+            margin-top: 8px; font-size: 10px; color: #60efff; max-height: 120px; overflow: auto;
+            background: #000; padding: 6px; border: 1px solid #60efff; border-radius: 3px; white-space: pre-wrap;
+        }
+        @media (max-width: 1100px) {
+            .container { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto auto; }
+            .sidebar, .kernel-panel { max-height: 220px; border: none; border-bottom: 1px solid #60efff; }
+            .canvas-wrap { min-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+    <!-- NEXUS header stamp. Do not rewrite the subline. -->
+    <header class="nexus-stamp" data-brand="NExtended Xperimental USers">
+        <div>
+            <div class="nexus-chip">DoubleA · AntManThePro</div>
+            <h1>NEXUS</h1>
+            <p>NExtended Xperimental USers</p>
+        </div>
+        <svg width="56" height="56" viewBox="0 0 64 64" aria-label="NEXUS sigil">
+            <rect width="64" height="64" rx="14" fill="#0a0a0f" stroke="#00ff87" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="19" fill="none" stroke="#60efff" stroke-width="1.2"/>
+            <path d="M20 42 L32 14 L44 42 M25.5 32 H38.5" fill="none" stroke="#00ff87" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="32" cy="32" r="3.2" fill="#ff0080"/>
+        </svg>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="metric-panel">
+                <div class="metric-title">CPU</div>
+                <div class="metric-bar"><div class="metric-fill" id="cpuFill"></div></div>
+                <div class="metric-value"><span>Load</span><span id="cpuValue">0%</span></div>
+                <div class="metric-value"><span id="cpuDetail">0.0 GHz</span></div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title">Memory</div>
+                <div class="metric-bar"><div class="metric-fill" id="memoryFill"></div></div>
+                <div class="metric-value"><span>Alloc</span><span id="memoryValue">0%</span></div>
+                <div class="metric-value"><span id="memoryDetail">0 / 32 GB</span></div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title">GPU</div>
+                <div class="metric-bar"><div class="metric-fill" id="gpuFill"></div></div>
+                <div class="metric-value"><span>Render</span><span id="gpuValue">0%</span></div>
+                <div class="metric-value"><span>AMD Radeon</span></div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title">Network</div>
+                <div class="metric-bar"><div class="metric-fill" id="networkFill"></div></div>
+                <div class="metric-value"><span>Thru</span><span id="networkValue">0%</span></div>
+                <div class="metric-value"><span id="networkDetail">0 Kbps</span></div>
+            </div>
+            <div class="temp-panel">
+                <div class="temp-title">🔥 Thermal</div>
+                <div class="temp-gauge"><div class="temp-fill" id="tempFill"></div></div>
+                <div class="temp-display">
+                    <span class="temp-value" id="tempValue">95°F</span>
+                    <span class="temp-status safe" id="tempStatus">SAFE</span>
+                </div>
+            </div>
+            <div class="control-panel">
+                <div class="control-title">⚡ Triggers</div>
+                <button class="control-btn" onclick="triggerCPUSpike()">SPIKE CPU</button>
+                <button class="control-btn" onclick="triggerMemoryLeak()">LEAK MEM</button>
+                <button class="control-btn" onclick="triggerGPULoad()">GPU LOAD</button>
+                <button class="control-btn" onclick="triggerNetwork()">NET BURST</button>
+                <button class="control-btn" onclick="resetSystem()" style="border-color:#00ff87;color:#00ff87;background:rgba(0,255,135,0.1);">COOL DOWN</button>
+            </div>
+        </div>
+
+        <div class="canvas-wrap">
+            <div class="masters-badge">ELITE MASTERS</div>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="kernel-panel">
+            <div class="metric-title">⚡ Live Kernel</div>
+            <textarea id="kernelCode" spellcheck="false">function customKernel(particle, node, time, metrics) {
+  // Rewrite particle behavior live
+  const load = (metrics.cpu + metrics.gpu) / 200;
+  particle.vx *= 1 + load * 0.3;
+  particle.vy *= 1 + load * 0.3;
+  if (node.activation > 0.7) {
+    particle.life += 8;
+  }
+  return particle;
+}</textarea>
+            <button class="control-btn" onclick="hotReload()">HOT RELOAD KERNEL</button>
+            <button class="control-btn" onclick="compilePayload()" style="border-color:#60efff;color:#60efff;">COMPILE PAYLOAD</button>
+            <div class="export-area" id="exportArea">// Kernel + graph state ready for export</div>
+            <div style="margin-top:12px;font-size:10px;color:#ffcc00;">Modes:</div>
+            <div id="modeSelector"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div><span class="stat-label">MODE:</span> <span class="stat-value" id="currentMode">IDLE</span></div>
+        <div><span class="stat-label">LOAD:</span> <span class="stat-value" id="totalLoad">0%</span></div>
+        <div><span class="stat-label">THERMAL:</span> <span class="stat-value" id="thermalStress">0%</span></div>
+        <div><span class="stat-label">PARTICLES:</span> <span class="stat-value" id="particleCount">0</span></div>
+        <div><span class="stat-label">FPS:</span> <span class="stat-value" id="fps">60</span></div>
+        <div><span class="stat-label">KERNEL:</span> <span class="stat-value" id="kernelStatus">DEFAULT</span></div>
+    </div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = { green: '#00ff87', cyan: '#60efff', pink: '#ff0080', yellow: '#ffcc00' };
+
+let customKernel = new Function('particle', 'node', 'time', 'metrics', `
+  const load = (metrics.cpu + metrics.gpu) / 200;
+  particle.vx *= 1 + load * 0.3;
+  particle.vy *= 1 + load * 0.3;
+  if (node.activation > 0.7) particle.life += 8;
+  return particle;
+`);
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+        this.life = 40 + Math.random() * 30;
+        this.maxLife = this.life;
+        this.color = color;
+        this.size = 1.5 + Math.random();
+    }
+    update(node, time, metrics, throttle) {
+        this.x += this.vx * throttle;
+        this.y += this.vy * throttle;
+        this.life -= 1 * (2 - throttle);
+        try {
+            customKernel(this, node, time, metrics);
+        } catch(e) { /* fail silent */ }
+        return this.life > 0;
+    }
+    draw() {
+        const alpha = this.life / this.maxLife;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+}
+
+class SystemMonitor {
+    constructor() {
+        this.mode = 'IDLE';
+        this.time = 0;
+        this.cpu = 12; this.memory = 40; this.gpu = 15; this.network = 8;
+        this.temperature = 95;
+        this.cpuSpike = 0; this.memoryLeak = 0; this.gpuLoad = 0; this.networkBurst = 0;
+        this.nodes = [];
+        this.particles = [];
+        this.dragging = null;
+        this.createNodes();
+        this.setupInteraction();
+    }
+    createNodes() {
+        const types = ['cpu','memory','gpu','network'];
+        const count = 16;
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const r = Math.min(canvas.width, canvas.height) * 0.28;
+            this.nodes.push({
+                id: i,
+                x: canvas.width/2 + Math.cos(angle) * r,
+                y: canvas.height/2 + Math.sin(angle) * r,
+                activation: 0,
+                type: types[i % 4],
+                particles: []
+            });
+        }
+    }
+    setupInteraction() {
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const t = e.touches ? e.touches[0] : e;
+            return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        };
+        canvas.addEventListener('pointerdown', (e) => {
+            const p = getPos(e);
+            for (let n of this.nodes) {
+                if (Math.hypot(p.x - n.x, p.y - n.y) < 18) {
+                    this.dragging = n;
+                    break;
+                }
+            }
+        });
+        canvas.addEventListener('pointermove', (e) => {
+            if (!this.dragging) return;
+            const p = getPos(e);
+            this.dragging.x = p.x;
+            this.dragging.y = p.y;
+        });
+        canvas.addEventListener('pointerup', () => this.dragging = null);
+        canvas.addEventListener('pointerleave', () => this.dragging = null);
+    }
+    update() {
+        this.time++;
+        this.cpuSpike *= 0.92; this.memoryLeak *= 0.88; this.gpuLoad *= 0.90; this.networkBurst *= 0.87;
+
+        let baseCPU = 12, baseMem = 40, baseGPU = 15, baseNet = 8;
+        if (this.mode === 'TRAIN') {
+            // Visual weight update pulse
+            if (this.time % 40 === 0) this.nodes.forEach(n => n.activation = Math.min(1, n.activation + 0.05));
+            baseCPU = 40 + Math.sin(this.time * 0.015) * 25;
+            baseMem = 60; baseGPU = 55; baseNet = 35;
+        } else if (this.mode === 'ARCHITECT') {
+            baseCPU = 25 + (Math.floor(this.time / 60) % 4) * 12;
+            baseMem = 50; baseGPU = 30; baseNet = 25;
+        } else if (this.mode === 'ANALYZE') {
+            baseCPU = 75; baseMem = 82; baseGPU = 78; baseNet = 60;
+        }
+        this.cpu = Math.min(100, Math.max(0, baseCPU + this.cpuSpike + Math.random()*4));
+        this.memory = Math.min(100, Math.max(0, baseMem + this.memoryLeak + Math.random()*2));
+        this.gpu = Math.min(100, Math.max(0, baseGPU + this.gpuLoad + Math.random()*3));
+        this.network = Math.min(100, Math.max(0, baseNet + this.networkBurst + Math.random()*5));
+
+        const avg = (this.cpu + this.memory + this.gpu) / 3;
+        this.temperature += (avg * 0.04 - (this.temperature - 86) * 0.015);
+        this.temperature = Math.max(86, Math.min(212, this.temperature));
+
+        const throttle = Math.max(0.4, 1 - Math.max(0, this.temperature - 140) / 100);
+
+        const metrics = { cpu: this.cpu, memory: this.memory, gpu: this.gpu, network: this.network, temp: this.temperature };
+
+        this.nodes.forEach(node => {
+            let val = node.type === 'cpu' ? this.cpu : node.type === 'memory' ? this.memory : node.type === 'gpu' ? this.gpu : this.network;
+            node.activation += (val/100 - node.activation) * 0.1;
+
+            if (node.activation > 0.55 && Math.random() > 0.75) {
+                const color = node.type === 'cpu' ? COLORS.green : node.type === 'memory' ? COLORS.cyan : node.type === 'gpu' ? COLORS.pink : COLORS.yellow;
+                node.particles.push(new Particle(node.x, node.y, color));
+            }
+            node.particles = node.particles.filter(p => p.update(node, this.time, metrics, throttle));
+        });
+
+        this.particleTotal = this.nodes.reduce((s,n) => s + n.particles.length, 0);
+    }
+    render() {
+        const tempPct = (this.temperature - 86) / 126;
+        const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bg.addColorStop(0, `rgba(10,14,39,${0.95 - tempPct*0.2})`);
+        bg.addColorStop(1, `rgba(26,26,46,${0.98 - tempPct*0.15})`);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = `rgba(96,239,255,${0.04 - tempPct*0.02})`;
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+        for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+        ctx.strokeStyle = 'rgba(96,239,255,0.15)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < this.nodes.length; i++) {
+            const a = this.nodes[i], b = this.nodes[(i+1)%this.nodes.length];
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+
+        this.nodes.forEach(node => {
+            const color = node.type === 'cpu' ? COLORS.green : node.type === 'memory' ? COLORS.cyan : node.type === 'gpu' ? COLORS.pink : COLORS.yellow;
+            const r = 6 + node.activation * 10;
+            ctx.shadowBlur = 12 * node.activation;
+            ctx.shadowColor = color;
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(node.x, node.y, r, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            node.particles.forEach(p => p.draw());
+        });
+
+        const cx = canvas.width/2, cy = canvas.height/2;
+        const hubR = 70;
+        ctx.strokeStyle = tempPct < 0.5 ? COLORS.cyan : COLORS.pink;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, hubR, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = COLORS.yellow;
+        ctx.font = 'bold 22px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${Math.floor(this.temperature)}°F`, cx, cy - 8);
+        ctx.font = 'bold 12px Courier New';
+        ctx.fillStyle = tempPct < 0.33 ? COLORS.green : tempPct < 0.66 ? COLORS.yellow : COLORS.pink;
+        ctx.fillText(tempPct < 0.33 ? 'COOL' : tempPct < 0.66 ? 'WARM' : 'HOT', cx, cy + 16);
+        ctx.textAlign = 'left';
+
+        if (this.temperature > 170) {
+            const pulse = 0.08 + Math.sin(this.time * 0.12) * 0.06;
+            ctx.fillStyle = `rgba(255,0,128,${pulse})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+}
+
+const monitor = new SystemMonitor();
+let fps = 60, frames = 0, last = performance.now();
+
+function animate() {
+    monitor.update();
+    monitor.render();
+
+    document.getElementById('cpuValue').textContent = Math.floor(monitor.cpu) + '%';
+    document.getElementById('cpuFill').style.width = monitor.cpu + '%';
+    document.getElementById('cpuDetail').textContent = (monitor.cpu * 3.2 / 100).toFixed(2) + ' GHz';
+
+    document.getElementById('memoryValue').textContent = Math.floor(monitor.memory) + '%';
+    document.getElementById('memoryFill').style.width = monitor.memory + '%';
+    document.getElementById('memoryDetail').textContent = Math.floor(monitor.memory * 32 / 100) + ' / 32 GB';
+
+    document.getElementById('gpuValue').textContent = Math.floor(monitor.gpu) + '%';
+    document.getElementById('gpuFill').style.width = monitor.gpu + '%';
+
+    document.getElementById('networkValue').textContent = Math.floor(monitor.network) + '%';
+    document.getElementById('networkFill').style.width = monitor.network + '%';
+    document.getElementById('networkDetail').textContent = Math.floor(monitor.network * 8) + ' Kbps';
+
+    document.getElementById('tempValue').textContent = Math.floor(monitor.temperature) + '°F';
+    document.getElementById('tempFill').style.width = ((monitor.temperature - 86) / 126 * 100) + '%';
+    const tp = (monitor.temperature - 86) / 126;
+    const ts = document.getElementById('tempStatus');
+    if (tp < 0.33) { ts.textContent = 'SAFE'; ts.className = 'temp-status safe'; }
+    else if (tp < 0.66) { ts.textContent = 'WARM'; ts.className = 'temp-status warm'; }
+    else { ts.textContent = 'CRITICAL'; ts.className = 'temp-status critical'; }
+
+    document.getElementById('currentMode').textContent = monitor.mode;
+    const tot = (monitor.cpu + monitor.memory + monitor.gpu + monitor.network) / 4;
+    document.getElementById('totalLoad').textContent = Math.floor(tot) + '%';
+    document.getElementById('thermalStress').textContent = Math.floor(tp * 100) + '%';
+    document.getElementById('particleCount').textContent = monitor.particleTotal || 0;
+
+    frames++;
+    const now = performance.now();
+    if (now - last >= 1000) {
+        fps = frames;
+        document.getElementById('fps').textContent = fps;
+        frames = 0; last = now;
+    }
+    requestAnimationFrame(animate);
+}
+
+window.triggerCPUSpike = () => monitor.cpuSpike = 48;
+window.triggerMemoryLeak = () => monitor.memoryLeak = 38;
+window.triggerGPULoad = () => monitor.gpuLoad = 55;
+window.triggerNetwork = () => monitor.networkBurst = 65;
+window.resetSystem = () => {
+    monitor.temperature = Math.max(95, monitor.temperature - 40);
+    monitor.cpuSpike = monitor.memoryLeak = monitor.gpuLoad = monitor.networkBurst = 0;
+};
+
+window.hotReload = () => {
+    try {
+        const code = document.getElementById('kernelCode').value;
+        customKernel = new Function('particle', 'node', 'time', 'metrics', code + '\nreturn particle;');
+        document.getElementById('kernelStatus').textContent = 'LIVE';
+        document.getElementById('kernelStatus').style.color = '#00ff87';
+    } catch (e) {
+        document.getElementById('kernelStatus').textContent = 'ERROR';
+        document.getElementById('kernelStatus').style.color = '#ff0080';
+        console.warn(e);
+    }
+};
+
+window.compilePayload = () => {
+    const code = document.getElementById('kernelCode').value;
+    const state = {
+        mode: monitor.mode,
+        nodes: monitor.nodes.length,
+        temp: Math.floor(monitor.temperature)
+    };
+    const payload = `// NEXUS CoreMind v4 Payload — DoubleA @ AntManThePro\n// ${new Date().toISOString()}\nconst kernel = ${JSON.stringify(code)};\nconst state = ${JSON.stringify(state, null, 2)};\n// Drop into any canvas loop`;
+    document.getElementById('exportArea').textContent = payload;
+};
+
+const modes = ['IDLE', 'TRAIN', 'ARCHITECT', 'ANALYZE'];
+modes.forEach(m => {
+    const btn = document.createElement('button');
+    btn.textContent = m;
+    btn.className = 'mode-btn' + (m === 'IDLE' ? ' active' : '');
+    btn.onclick = () => {
+        monitor.mode = m;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    };
+    document.getElementById('modeSelector').appendChild(btn);
+});
+
+animate();
+</script>
+</body>
+</html>

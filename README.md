@@ -1,24 +1,24 @@
-# NEXUS Cortex — Elite Masters Build
+# NEXUS Cortex — Elite Masters
 
-Real-time Canvas systems demonstration by DoubleA @ AntManThePro.
+**NEXUS CoreMind v4 — Live Kernel System Monitor**
 
-## Modules
-- **FIELD DISPATCH** — Live Dijkstra shortest-path routing of field units across a dynamic graph
-- **NEURAL CORTEX** — Hebbian learning visualizer with forward pass, weight updates, and loss curve
-- **HW PULSE** — STM32-style 4-channel oscilloscope + live register bit flips
-- **IDENTITY** — Boot sequence portfolio terminal
+DoubleA · AntManThePro | NExtended Xperimental USers
 
-## Controls
-- Click / tap tabs or press `1` `2` `3` `4` to switch modules
-- URL hash sync (`#dispatch`, `#neural`, `#hardware`, `#identity`) for shareable links
-- Tap input nodes in Neural Cortex to fire signals
-- Fully responsive (mobile + desktop)
+## Live
 
-## Tech
-- Self-contained HTML + React 18 (CDN) + Canvas 2D
-- Real algorithms running live (Dijkstra, Hebbian update rule, waveform generation)
-- NEXUS brand lock: `#00ff87` `#60efff` `#ff0080` `#ffcc00` on `#0a0a0f`
+https://antmanthepro.github.io/nexus-cortex/
 
-Deployed via GitHub Pages.
+## What it is
 
-Built for interviews, demos, and anyone who wants to see hardware/software thinking rendered in real time.
+Real-time Canvas system monitor with:
+- Draggable metric nodes (CPU / Memory / GPU / Network)
+- Particle dataflow on buses
+- Hot-reloadable customKernel via `new Function()`
+- Thermal throttling that actually slows the simulation
+- TRAIN mode with visual weight pulses
+- Compile-to-payload export
+- Full mobile + desktop, neon aesthetic locked
+
+Open `index.html` or the Pages URL. No build step.
+
+Built by DoubleA @ AntManThePro.
